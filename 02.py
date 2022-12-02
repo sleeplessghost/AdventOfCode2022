@@ -1,43 +1,20 @@
-def parseLine(line):
-    opp,me = line.split(' ')
-    return (opp, me)
+def toInt(x):
+    match x:
+        case 'A' | 'X': return 0
+        case 'B' | 'Y': return 1
+        case 'C' | 'Z': return 2
 
-lines = [parseLine(line.strip()) for line in open('in/02.txt')]
+def outcome(opp, me):
+    if me == opp: return 3
+    if me == (opp + 1) % 3: return 6
+    return 0
 
-score = 0
+def part1Score(opp, me):
+    return 1 + me + outcome(opp, me)
 
-for opp,me in lines:
-    if me == 'X':
-        score += 1
-        if opp == 'A': score += 3
-        if opp == 'C': score += 6
-    if me == 'Y':
-        score += 2
-        if opp == 'A': score += 6
-        if opp == 'B': score += 3
-    if me == 'Z':
-        score += 3
-        if opp == 'B': score += 6
-        if opp == 'C': score += 3
+def part2Score(opp, result):
+    return 1 + (result * 3) + ((opp + (result - 1)) % 3)
 
-print('part1:', score)
-
-score = 0
-for opp,me in lines:
-    if me == 'X':
-        if opp == 'A': score += 3
-        if opp == 'B': score += 1
-        if opp == 'C': score += 2
-    if me == 'Y':
-        score += 3
-        if opp == 'A': score += 1
-        if opp == 'B': score += 2
-        if opp == 'C': score += 3
-    if me == 'Z':
-        score += 6
-        if opp == 'A': score += 2
-        if opp == 'B': score += 3
-        if opp == 'C': score += 1
-
-
-print('part2:', score)
+lines = [[toInt(x) for x in line.strip().split(' ')] for line in open('in/02.txt')]
+print('part1:', sum(part1Score(opp, me) for opp,me in lines))
+print('part2:', sum(part2Score(opp, result) for opp,result in lines))
