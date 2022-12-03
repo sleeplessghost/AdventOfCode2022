@@ -5,7 +5,7 @@ def splitset(line):
     mid = len(line) // 2
     return set(line[:mid]), set(line[mid:])
 
-lines = [line.strip() for line in open('in/03.txt')]
+lines = open('in/03.txt').read().splitlines()
 sets = map(splitset, lines)
 groups = (map(set, lines[i:i+3]) for i in range(0, len(lines), 3))
 
