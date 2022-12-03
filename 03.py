@@ -3,7 +3,7 @@ def value(char):
 
 def splitset(line):
     mid = len(line) // 2
-    return set(line[0:mid]), set(line[mid:])
+    return set(line[:mid]), set(line[mid:])
 
 lines = [line.strip() for line in open('in/03.txt')]
 sets = [splitset(line) for line in lines]
