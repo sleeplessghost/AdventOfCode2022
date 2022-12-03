@@ -1,35 +1,13 @@
-import math
+def value(char):
+    return ord(char) - (96 if char.islower() else 38)
 
-
-def pr(char):
-    if char >= 'a' and char <= 'z':
-        return ord(char) - 96
-    return ord(char) - 38
-
-def sr(line):
-    mid = math.floor(len(line) / 2)
-    a = line[0:mid]
-    b = line[mid:]
-    return (a,b)
-
-def mat(a,b):
-    for i in a:
-        if i in b: return i
-    print(a,b)
-    
+def splitset(line):
+    mid = len(line) // 2
+    return set(line[0:mid]), set(line[mid:])
 
 lines = [line.strip() for line in open('in/03.txt')]
-sp = [sr(line) for line in lines]
-res = sum(pr(mat(a,b)) for a,b in sp)
+sets = [splitset(line) for line in lines]
+groups = [[set(line) for line in lines[i:i+3]] for i in range(0, len(lines), 3)]
 
-print('part1:', res)
-
-tot = 0
-for i in range(0, len(lines), 3):
-    group = [lines[i], lines[i+1], lines[i+2]]
-    for char in lines[i]:
-        if char in lines[i+1] and char in lines[i+2]:
-            tot += pr(char)
-            break
-
-print('part2:', tot)
+print('part1:', sum(value(char) for a,b in sets for char in a.intersection(b)))
+print('part2:', sum(value(char) for a,b,c in groups for char in a.intersection(b).intersection(c)))
