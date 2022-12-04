@@ -1,6 +1,6 @@
 
 def parsePart(part):
-    return [int(n) for n in part.split('-')]
+    return tuple(int(n) for n in part.split('-'))
 
 def contains(a,b):
     return (min(a) <= min(b) and max(a) >= max(b)) or (min(b) <= min(a) and max(b) >= max(a))
