@@ -13,7 +13,7 @@ def process(stacks, instructions, bulkmove):
     for quantity, origin, dest in instructions:
         removed = [stacks[origin-1].pop() for _ in range(quantity)]
         if bulkmove: removed.reverse()
-        for box in removed: stacks[dest-1].append(box)
+        stacks[dest-1].extend(removed)
     return stacks
 
 crates, instructions = open('in/05.txt').read().split('\n\n')
