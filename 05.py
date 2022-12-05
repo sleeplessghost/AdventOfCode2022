@@ -7,9 +7,9 @@ def parseCrates(crates):
     return [column(crates, i) for i in range(1, len(crates[0]), 4)]
 
 def column(crates, index):
-    return list(reversed([line[index] for line in crates if line[index].strip()]))
+    return list(reversed([char for line in crates if (char := line[index]) != ' ']))
 
-def process(stacks, instructions, bulkmove):
+def process(stacks: list[list], instructions, bulkmove):
     for quantity, origin, dest in instructions:
         removed = [stacks[origin-1].pop() for _ in range(quantity)]
         if bulkmove: removed.reverse()
