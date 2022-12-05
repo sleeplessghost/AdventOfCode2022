@@ -15,12 +15,17 @@ def parsecrates(crates):
 crates, instructions = open('in/05.txt').read().split('\n\n')
 stacks = parsecrates(crates)
 
-# for x in instructions.splitlines():
-#     sp = x.split(' ')
-#     quant, fr, to = int(sp[1]), int(sp[3]) - 1, int(sp[5]) - 1
-#     for _ in range(quant):
-#         box = stacks[fr].pop()
-#         stacks[to].append(box)
+for x in instructions.splitlines():
+    sp = x.split(' ')
+    quant, fr, to = int(sp[1]), int(sp[3]) - 1, int(sp[5]) - 1
+    for _ in range(quant):
+        box = stacks[fr].pop()
+        stacks[to].append(box)
+
+v = ''.join([s.pop() for s in stacks])
+print('part1:', v)
+
+stacks = parsecrates(crates)
 
 for x in instructions.splitlines():
     sp = x.split(' ')
@@ -29,6 +34,4 @@ for x in instructions.splitlines():
     for box in boxes: stacks[to].append(box)
 
 v = ''.join([s.pop() for s in stacks])
-
-print('part1:', v)
 print('part2:', v)
