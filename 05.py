@@ -1,37 +1,25 @@
-from collections import deque
+import re
 
-def parsecrates(crates):
-    stacks = [deque() for i in range(9)]
-    split = crates.splitlines()
-    boxes = split[:-1]
-    for line in boxes:
-        for i in range(9):
-            val = 4 * i
-            part = line[val:val+4].strip()
-            if (part): stacks[i].appendleft(part[1])
+def parseInstr(instruction):
+    return [int(n) for n in re.findall('(\d+)', instruction)]
+
+def parseCrates(crates):
+    return [column(crates, i) for i in range(1, len(crates[0]), 4)]
+
+def column(crates, index):
+    return list(reversed([line[index] for line in crates if line[index].strip()]))
+
+def process(stacks, instructions, bulkmove):
+    for quantity, origin, dest in instructions:
+        removed = [stacks[origin-1].pop() for _ in range(quantity)]
+        if bulkmove: removed.reverse()
+        for box in removed: stacks[dest-1].append(box)
     return stacks
-    
 
 crates, instructions = open('in/05.txt').read().split('\n\n')
-stacks = parsecrates(crates)
+instructions = [parseInstr(instr) for instr in instructions.splitlines()]
+crates = crates.splitlines()[:-1]
+stacks_one, stacks_two = parseCrates(crates), parseCrates(crates)
 
-for x in instructions.splitlines():
-    sp = x.split(' ')
-    quant, fr, to = int(sp[1]), int(sp[3]) - 1, int(sp[5]) - 1
-    for _ in range(quant):
-        box = stacks[fr].pop()
-        stacks[to].append(box)
-
-v = ''.join([s.pop() for s in stacks])
-print('part1:', v)
-
-stacks = parsecrates(crates)
-
-for x in instructions.splitlines():
-    sp = x.split(' ')
-    quant, fr, to = int(sp[1]), int(sp[3]) - 1, int(sp[5]) - 1
-    boxes = reversed([stacks[fr].pop() for _ in range(quant)])
-    for box in boxes: stacks[to].append(box)
-
-v = ''.join([s.pop() for s in stacks])
-print('part2:', v)
+print('part1:', ''.join(stack[-1] for stack in process(stacks_one, instructions, False)))
+print('part2:', ''.join(stack[-1] for stack in process(stacks_two, instructions, True)))
