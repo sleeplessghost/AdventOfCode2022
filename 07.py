@@ -21,12 +21,8 @@ class Folder:
         return self.cachedSize
 
     def search(self, searchFunction):
-        searchResults = []
-        if searchFunction(self): searchResults.append(self)
-        for folder in self.folders:
-            matches = folder.search(searchFunction)
-            searchResults.extend(matches)
-        return searchResults
+        if searchFunction(self): yield self
+        yield from (match for f in self.folders for match in f.search(searchFunction))
 
 class File:
     def __init__(self, size, name):
@@ -34,7 +30,7 @@ class File:
         self.name = name
 
 def parseLines(root, lines):
-    current = root
+    current: Folder = root
     for line in lines:
         match line.split():
             case '$', 'cd', '/': current = root
