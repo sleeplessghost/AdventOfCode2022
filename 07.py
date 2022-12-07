@@ -7,6 +7,14 @@ class Folder:
         self.files = []
         self.cachedSize = None
 
+    def mkdir(self, name):
+        self.folders.append((folder := Folder(self, name)))
+        return folder
+
+    def mkfile(self, size, name):
+        self.files.append((file := File(size, name)))
+        return file
+
     def size(self):
         if self.cachedSize == None:
             self.cachedSize = sum(d.size() for d in self.folders) + sum(f.size for f in self.files)
@@ -22,7 +30,7 @@ class Folder:
 
 class File:
     def __init__(self, size, name):
-        self.size = size
+        self.size = int(size)
         self.name = name
 
 def parseLines(root, lines):
@@ -31,24 +39,10 @@ def parseLines(root, lines):
         match line.split():
             case '$', 'cd', '/': current = root
             case '$', 'cd', '..': current = current.parent
-            case '$', 'cd', name: current = mkdir(current, name)
+            case '$', 'cd', name: current = next(d for d in current.folders if d.name == name)
             case '$', 'ls': continue
-            case 'dir', name: mkdir(current, name)
-            case size, name: mkfile(current, size, name)
-
-def mkdir(dir, name):
-    sub = next((d for d in dir.folders if d.name == name), None)
-    if sub == None:
-        sub = Folder(dir, name)
-        dir.folders.append(sub)
-    return sub
-
-def mkfile(dir, size, name):
-    file = next((f for f in dir.files if f.name == name), None)
-    if file == None:
-        file = File(int(size), name)
-        dir.files.append(file)
-    return file
+            case 'dir', name: current.mkdir(name)
+            case size, name: current.mkfile(size, name)
 
 root = Folder(None, 'root')
 lines = [line.strip() for line in open('in/07.txt')]
