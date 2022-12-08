@@ -1,39 +1,12 @@
 from collections import defaultdict
 
-def isVisibleLeft(grid, x, y):
-    cur = grid[y][x]
-    x -= 1
-    while x >= 0:
-        if grid[y][x] >= cur: return False
-        x -= 1
+def isVisible(grid, x, y, dx, dy):
+    px, py = x + dx, y + dy
+    while 0 <= px < len(grid[0]) and 0 <= py < len(grid):
+        if grid[py][px] >= grid[y][x]: return False
+        px += dx
+        py += dy
     return True
-
-def isVisibleRight(grid, x, y):
-    cur = grid[y][x]
-    x += 1
-    while x < len(grid[0]):
-        if grid[y][x] >= cur: return False
-        x += 1
-    return True
-
-def isVisibleUp(grid, x, y):
-    cur = grid[y][x]
-    y -= 1
-    while y >= 0:
-        if grid[y][x] >= cur: return False
-        y -= 1
-    return True
-
-def isVisibleDown(grid, x, y):
-    cur = grid[y][x]
-    y += 1
-    while y < len(grid):
-        if grid[y][x] >= cur: return False
-        y += 1
-    return True
-
-def isVisible(grid, x, y):
-    return isVisibleLeft(grid, x, y) or isVisibleRight(grid, x, y) or isVisibleUp(grid, x, y) or isVisibleDown(grid, x, y) 
 
 def score(grid, x, y):
     val = grid[y][x]
@@ -61,14 +34,14 @@ def score(grid, x, y):
     return a * b * c * d
 
 input = open('in/08.txt').read()
-split = [[int(n) for n in line] for line in input.splitlines()]
+grid = [[int(n) for n in line] for line in input.splitlines()]
 
 mapped = defaultdict(bool)
 scores = defaultdict(int)
-for y in range(len(split)):
-    for x in range(len(split[0])):
-        mapped[(x,y)] = isVisible(split, x, y)
-        scores[(x,y)] = score(split, x, y)
+for y in range(len(grid)):
+    for x in range(len(grid[0])):
+        mapped[(x,y)] = any(isVisible(grid, x, y, dx, dy) for dx,dy in [(-1,0),(1,0),(0,-1),(0,1)])
+        scores[(x,y)] = score(grid, x, y)
 
 print('part1:', sum(mapped.values()))
 print('part2:', max(scores.values()))
