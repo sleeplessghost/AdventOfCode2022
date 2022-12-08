@@ -1,7 +1,6 @@
-from collections import defaultdict
 from math import prod
 
-def checkTree(grid, x, y, dx, dy):
+def checkDirections(grid, x, y, dx, dy):
     score = 0
     px, py = x + dx, y + dy
     while 0 <= px < len(grid[0]) and 0 <= py < len(grid):
@@ -11,16 +10,13 @@ def checkTree(grid, x, y, dx, dy):
         py += dy
     return (score, True)
 
-input = open('in/08.txt').read()
-grid = [[int(n) for n in line] for line in input.splitlines()]
+def checkTree(grid, x, y):
+    results = [checkDirections(grid, x, y, dx, dy) for dx,dy in [(-1,0),(1,0),(0,-1),(0,1)]]
+    visible = any(visible for score,visible in results)
+    score = prod(score for score,visible in results)
+    return (score, visible)
 
-mapped = defaultdict(bool)
-scores = defaultdict(int)
-for y in range(len(grid)):
-    for x in range(len(grid[0])):
-        results = [checkTree(grid, x, y, dx, dy) for dx,dy in [(-1,0),(1,0),(0,-1),(0,1)]]
-        mapped[(x,y)] = any(visible for score,visible in results)
-        scores[(x,y)] = prod(score for score,visible in results)
-
-print('part1:', sum(mapped.values()))
-print('part2:', max(scores.values()))
+grid = [[int(n) for n in line.strip()] for line in open('in/08.txt')]
+checked = [checkTree(grid, x, y) for x in range(len(grid[0])) for y in range(len(grid))]
+print('part1:', sum(visible for score,visible in checked))
+print('part2:', max(score for score,visible in checked))
