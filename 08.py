@@ -1,13 +1,12 @@
 from math import prod
 
 def checkDirections(grid, x, y, dx, dy):
-    score = 0
-    px, py = x + dx, y + dy
-    while 0 <= px < len(grid[0]) and 0 <= py < len(grid):
+    score, height = 0, grid[y][x]
+    x, y = x+dx, y+dy
+    while 0 <= x < len(grid[0]) and 0 <= y < len(grid):
         score += 1
-        if grid[py][px] >= grid[y][x]: return (score, False)
-        px += dx
-        py += dy
+        if grid[y][x] >= height: return (score, False)
+        x, y = x+dx, y+dy
     return (score, True)
 
 def checkTree(grid, x, y):
