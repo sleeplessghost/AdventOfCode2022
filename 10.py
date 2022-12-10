@@ -2,19 +2,17 @@ from collections import defaultdict
 
 instr = open('in/10.txt').read().splitlines()
 register, cycle, i, signal = 1, 0, 0, 0
-pending_adds, pixels = [], defaultdict(bool)
+pending_adds, pixels = [], defaultdict(lambda:'  ')
 
-while True:
-    x = cycle % 40
-    y = cycle // 40
+while pending_adds or i < len(instr) - 1:
+    x, y = cycle % 40, cycle // 40
     cycle += 1
     if x in (register-1, register, register+1):
-        pixels[(x, y)] = True
+        pixels[(x, y)] = '██'
     if (cycle + 20) % 40 == 0:
         signal += register * cycle
-    if len(pending_adds):
+    if pending_adds:
         register += pending_adds.pop()
-    elif (i >= len(instr)): break
     else:
         match instr[i].split():
             case 'addx', num: pending_adds.append(int(num))
@@ -23,6 +21,6 @@ while True:
 print('part1:', signal)
 print('part2:')
 for y in range(max(y for (x,y) in pixels.keys())+1):
-    for register in range(max(x for (x,y) in pixels.keys())+1):
-        print('██' if pixels[(register,y)] else '  ', end='')
+    for x in range(max(x for (x,y) in pixels.keys())+1):
+        print(pixels[(x,y)], end='')
     print()
