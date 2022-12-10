@@ -10,7 +10,7 @@ while True:
     cycle += 1
     if x in (register-1, register, register+1):
         pixels[(x, y)] = True
-    if cycle in (20, 60, 100, 140, 180, 220):
+    if (cycle + 20) % 40 == 0:
         signal += register * cycle
     if len(pending_adds):
         register += pending_adds.pop()
