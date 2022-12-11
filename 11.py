@@ -1,55 +1,42 @@
 import math
 
 class Monkey:
-    def __init__(self, items, isAddition, operationOther, divisor, trueMonkey, falseMonkey):
+    def __init__(self, items, operation, operand, divisor, throwMap):
         self.items = items
-        self.isAddition = isAddition
-        self.operationOther = operationOther
+        self.operation = operation
+        self.operand = operand
         self.divisor = divisor
-        self.trueMonkey = trueMonkey
-        self.falseMonkey = falseMonkey
+        self.throwMap = throwMap
         self.inspectCount = 0
 
-    def operate(self, item):
+    def inspect(self, item):
         self.inspectCount += 1
-        other = item if self.operationOther == 'old' else int(self.operationOther)
-        if self.isAddition: return item + other
-        else: return item * other   
+        operand = item if self.operand == 'old' else int(self.operand)
+        return self.operation(item, operand)  
         
 def parse(monkey):
-    lines = monkey.splitlines()
-    items = [int(n) for n in lines[1].replace("Starting items: ", "").split(', ')]
-    operation = lines[2].replace("Operation: new = old ", "").strip().split(' ')
-    isAddition = operation[0] == '+'
-    operationOther = operation[1]
-    divisor = int(lines[3].replace("Test: divisible by ", "").strip())
-    trueMonkey = int(lines[4].replace("If true: throw to monkey ", "").strip())
-    falseMonkey = int(lines[5].replace("If false: throw to monkey ", "").strip())
-    return Monkey(items, isAddition, operationOther, divisor, trueMonkey, falseMonkey)
+    items = [int(n) for n in monkey[1].replace("Starting items: ", "").split(', ')]
+    operationParts = monkey[2].replace("Operation: new = old ", "").strip().split(' ')
+    operation = (lambda a,b: a+b) if operationParts[0] == '+' else (lambda a,b: a*b)
+    divisor = int(monkey[3].replace("Test: divisible by ", ""))
+    ifTrue = int(monkey[4].replace("If true: throw to monkey ", ""))
+    ifFalse = int(monkey[5].replace("If false: throw to monkey ", ""))
+    throwMap = {False: ifFalse, True: ifTrue}
+    return Monkey(items, operation, operationParts[1], divisor, throwMap)
 
-def round(monkeys):
+def round(monkeys, reduceFunction):
     for monkey in monkeys:
         while monkey.items:
-            item = monkey.operate(monkey.items.pop(0)) // 3
-            if item % monkey.divisor == 0: monkeys[monkey.trueMonkey].items.append(item)
-            else: monkeys[monkey.falseMonkey].items.append(item)
+            item = reduceFunction(monkey.inspect(monkey.items.pop(0)))
+            nextIndex = monkey.throwMap[item % monkey.divisor == 0]
+            monkeys[nextIndex].items.append(item)
 
-def round_2(monkeys, commonMultiple):
-    for monkey in monkeys:
-        while monkey.items:
-            item = monkey.operate(monkey.items.pop(0)) % commonMultiple
-            if item % monkey.divisor == 0: monkeys[monkey.trueMonkey].items.append(item)
-            else: monkeys[monkey.falseMonkey].items.append(item)
+monkeys_one = [parse(monkey.splitlines()) for monkey in open('in/11.txt').read().split('\n\n')]
+monkeys_two = [parse(monkey.splitlines()) for monkey in open('in/11.txt').read().split('\n\n')]
+commonMultiple = math.prod(m.divisor for m in monkeys_two)
 
-monkeys = [parse(monkey) for monkey in open('in/11.txt').read().split('\n\n')]
-for _ in range(20):
-    round(monkeys)
-counts = sorted([m.inspectCount for m in monkeys])
-print('part1:', counts[-1] * counts[-2])
+for _ in range(20): round(monkeys_one, lambda item: item // 3)
+for _ in range(10_000): round(monkeys_two, lambda item: item % commonMultiple)
 
-monkeys = [parse(monkey) for monkey in open('in/11.txt').read().split('\n\n')]
-commonMultiple = math.prod(m.divisor for m in monkeys)
-for _ in range(10_000):
-    round_2(monkeys, commonMultiple)
-counts = sorted([m.inspectCount for m in monkeys])
-print('part2:', counts[-1] * counts[-2])
+print('part1:', math.prod(sorted([m.inspectCount for m in monkeys_one])[-2:]))
+print('part2:', math.prod(sorted([m.inspectCount for m in monkeys_two])[-2:]))
