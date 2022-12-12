@@ -1,65 +1,35 @@
 from collections import defaultdict, deque
 
-def queued(grid, startPoint, endPoint):
-    queue = deque()
-    lengthToNode = defaultdict(lambda: 999999999)
-    queue.append([startPoint])
+def bfs(grid, startPoint, isEndPoint, canPath):
+    queue = deque([[startPoint]])
+    lengthMap = defaultdict(lambda: 999999999)
     while queue:
         path = queue.popleft()
-        for resultPath in search(grid, path, lengthToNode):
-            if resultPath[-1] == endPoint:
-                return resultPath
-            else:
-                queue.append(resultPath)
+        for resultPath in search(grid, path, lengthMap, canPath):
+            if isEndPoint(*resultPath[-1]): return resultPath
+            else: queue.append(resultPath)
 
-def search(grid, path, lengthMap):
+def search(grid, path, lengthMap, canPath):
     dirs = [(1,0), (-1,0), (0,1), (0,-1)]
     x,y = path[-1]
-    current = grid[y][x]
-    for dx,dy in dirs:
-        nx, ny = (x+dx, y+dy)
-        if 0 <= nx < len(grid[0]) and 0 <= ny < len(grid):
-            if (nx,ny) not in path and grid[ny][nx] <= current + 1:
-                if len(path) + 1 < lengthMap[(nx,ny)]:
-                    lengthMap[(nx,ny)] = len(path) + 1
-                    yield [*path, (nx,ny)]
+    neighbours = [(x+dx, y+dy) for dx,dy in dirs if 0 <= x+dx < len(grid[0]) and 0 <= y+dy < len(grid)]
+    for nx, ny in neighbours:
+        if (nx,ny) not in path and canPath(grid[y][x], grid[ny][nx]) and len(path) + 1 < lengthMap[(nx,ny)]:
+            lengthMap[(nx,ny)] = len(path) + 1
+            yield [*path, (nx,ny)]
 
-def queued_two(grid, startPoint):
-    queue = deque()
-    lengthToNode = defaultdict(lambda: 999999999)
-    queue.append([startPoint])
-    while queue:
-        path = queue.popleft()
-        for resultPath in search_two(grid, path, lengthToNode):
-            x,y = resultPath[-1]
-            if grid[y][x] == 0:
-                return resultPath
-            else:
-                queue.append(resultPath)
+grid = [[ord(c) for c in line.strip()] for line in open('in/12.txt')]
+(sx,sy) = next((x, y) for y,row in enumerate(grid) for x,c in enumerate(row) if c == ord('S'))
+(ex,ey) = next((x, y) for y,row in enumerate(grid) for x,c in enumerate(row) if c == ord('E'))
+grid[sy][sx] = ord('a')
+grid[ey][ex] = ord('z')
 
-def search_two(grid, path, lengthMap):
-    dirs = [(1,0), (-1,0), (0,1), (0,-1)]
-    x,y = path[-1]
-    current = grid[y][x]
-    for dx,dy in dirs:
-        nx, ny = (x+dx, y+dy)
-        if 0 <= nx < len(grid[0]) and 0 <= ny < len(grid):
-            if (nx,ny) not in path and grid[ny][nx] >= current - 1:
-                if len(path) + 1 < lengthMap[(nx,ny)]:
-                    lengthMap[(nx,ny)] = len(path) + 1
-                    yield [*path, (nx,ny)]
-
-input = open('in/12.txt').read()
-grid = [[ord(c) - 97 for c in line.strip()] for line in open('in/12.txt')]
-
-sy = next(y for y,line in enumerate(grid) if (ord('S') - 97) in line)
-sx = next(x for x,c in enumerate(grid[sy]) if (ord('S') - 97) == c)
-ey = next(y for y,line in enumerate(grid) if (ord('E') - 97) in line)
-ex = next(x for x,c in enumerate(grid[ey]) if (ord('E') - 97) == c)
-grid[sy][sx] = ord('a') - 97
-grid[ey][ex] = ord('z') - 97
-
-shortestPath = queued(grid, (sx,sy), (ex,ey))
-shortestPath2 = queued_two(grid, (ex,ey))
+isEndPoint = lambda x,y: (x,y) == (ex,ey)
+canPath = lambda current,neighbour: neighbour <= current + 1
+shortestPath = bfs(grid, (sx,sy), isEndPoint, canPath)
 print('part1:', len(shortestPath) - 1)
-print('part2:', len(shortestPath2) - 1)
+
+isEndPoint = lambda x,y: grid[y][x] == ord('a')
+canPath = lambda current,neighbour: neighbour >= current - 1
+shortestPath = bfs(grid, (ex,ey), isEndPoint, canPath)
+print('part2:', len(shortestPath) - 1)
