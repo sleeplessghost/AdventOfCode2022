@@ -8,8 +8,9 @@ rocks = [
     [(0,0), (1,0), (0,1), (1,1)]
 ]
 
-def dropRocks(grid, jets, count, heights, diffs):
+def dropRocks(grid, jets, count):
     rockIndex, jetIndex = 0,0
+    heights, diffs = [], []
     for i in range(count):
         rock = rocks[rockIndex]
         rockIndex = (rockIndex + 1) % len(rocks)
@@ -62,10 +63,9 @@ jets = [-1 if c == '<' else 1 for c in open('in/17.txt').read().strip()]
 grid = defaultdict(lambda: '.')
 for x in range (0, 7):
     grid[(x, 0)] = '-'
-heights,diffs = dropRocks(grid, jets, 2022,[],[])
 
-print('part1:', max(y for x,y in grid.keys() if grid[(x,y)] == '#'))
-
-heights,diffs = dropRocks(grid, jets, 3000, heights, diffs)
+heights,diffs = dropRocks(grid, jets, 5000)
 repeats = findSeq(diffs)
+
+print('part1:', heights[2022 - 1])
 print('part2:', calcTotal(repeats, diffs))
