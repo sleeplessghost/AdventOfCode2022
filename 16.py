@@ -3,10 +3,10 @@ from collections import deque, namedtuple
 State = namedtuple('State', ['valve', 'time', 'rate', 'total', 'visited'])
 
 def parse(line):
-    x = line.replace(',','').replace(';','').replace('rate=','').split()
-    valve = x[1]
-    flow = int(x[4])
-    tunnels = x[9:]
+    parts = line.replace(',','').replace(';','').replace('rate=','').split()
+    valve = parts[1]
+    flow = int(parts[4])
+    tunnels = parts[9:]
     return (valve, flow, tunnels)
 
 def distsearch(lookup):
@@ -17,7 +17,7 @@ def distsearch(lookup):
         while q:
             current, distance = q.popleft()
             _, tunnels = lookup[current]
-            for node in (t for t in tunnels if t not in dist_map.keys()):
+            for node in (t for t in tunnels if t not in dist_map):
                 dist_map[node] = distance + 1
                 q.append((node, distance + 1))
     return distances
@@ -46,17 +46,18 @@ def nodesearch(lookup, distances, value_nodes):
 
 def elesearch(lookup, distances, value_nodes):
     q = deque([(State('AA', 0, 0, 0, {'AA'}), State('AA', 0, 0, 0, {'AA'}))])
-    maxValue = 0
+    best_value_per_time = 0
     while q:
         mine, elephant = q.popleft()
         visited = {*mine.visited, *elephant.visited}
         my_nodes = [node for node in value_nodes if canPath(mine.valve, mine.time, visited, node, distances, 26)]
         ele_nodes = [node for node in value_nodes if canPath(elephant.valve, elephant.time, visited, node, distances, 26)]
-        testval = (value(mine, 26) / (mine.time+1)) + (value(elephant, 26) / (elephant.time+1))
-        maxValue = max(maxValue, testval)
-        if testval < maxValue // 1.7: continue
-        if not any((*my_nodes, *ele_nodes)):
-            yield value(mine, 26) + value(elephant, 26)
+
+        value_per_time = (value(mine, 26) / (mine.time+1)) + (value(elephant, 26) / (elephant.time+1))
+        best_value_per_time = max(best_value_per_time, value_per_time)
+        if value_per_time < best_value_per_time // 1.7: continue
+        
+        if not any((*my_nodes, *ele_nodes)): yield value(mine, 26) + value(elephant, 26)
         else:
             for my_node in my_nodes:
                 my_next = getNextState(mine, my_node, distances, lookup)

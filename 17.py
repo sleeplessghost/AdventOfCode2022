@@ -43,9 +43,7 @@ def findSeq(diffs):
         sliced = diffs[i:i+size]
         repeats = [i]
         for t in range(i+size, len(diffs)-size):
-            testslice = diffs[t:t+size]
-            if sliced == testslice:
-                repeats.append(t)
+            if sliced == diffs[t:t+size]: repeats.append(t)
         if len(repeats) > 2: return repeats
 
 def calcTotal(repeatIndexes, heightDiffs):
@@ -53,11 +51,11 @@ def calcTotal(repeatIndexes, heightDiffs):
     length = cycle_repeat - cycle_start
     iterations = 1000000000000 - cycle_start
     remaining_rocks = iterations % length
-    multiplier = (iterations - remaining_rocks) // length
+    iterations = (iterations - remaining_rocks) // length
     before_cycle_height = sum(heightDiffs[:cycle_start + 1])
     per_iteration = sum(heightDiffs[cycle_start + 1 : cycle_repeat + 1])
     remaining_rocks_height = sum(heightDiffs[cycle_start + 1 : cycle_start + 1 + remaining_rocks])
-    return before_cycle_height + (per_iteration * multiplier) + remaining_rocks_height
+    return before_cycle_height + (per_iteration * iterations) + remaining_rocks_height
 
 jets = [-1 if c == '<' else 1 for c in open('in/17.txt').read().strip()]
 grid = defaultdict(lambda: '.')
