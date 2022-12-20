@@ -1,31 +1,24 @@
 class Node:
-    def __init__(self, value):
-        self.value = value
-        self.prev = None
-        self.next = None
+    def __init__(self, value): self.value = value
 
 def link(numbers):
     for i,n in enumerate(numbers):
-        prev_index = (i-1) % len(numbers)
-        next_index = (i+1) % len(numbers)
+        prev_index, next_index = (i-1) % len(numbers), (i+1) % len(numbers)
         numbers[i].prev = numbers[prev_index]
         numbers[i].next = numbers[next_index]
     return numbers
 
 def decrypt(linkedlist):
-    for n in linkedlist:
-        steps = n.value % (len(linkedlist) - 1)
-        if n.value == 0 or steps == 0: continue
-        prev_node = n.prev
-        next_node = n.next
-        prev_node.next = next_node
-        next_node.prev = prev_node
+    for node in linkedlist:
+        steps = node.value % (len(linkedlist) - 1)
+        if steps == 0: continue
+        next_node = node.prev.next = node.next
+        next_node.prev = node.prev
         for _ in range(steps): next_node = next_node.next
-        prev_node = next_node.prev
-        n.prev = prev_node
-        n.next = next_node
-        prev_node.next = n
-        next_node.prev = n
+        node.prev = next_node.prev
+        node.next = next_node
+        node.prev.next = node
+        next_node.prev = node
 
 def grove(decrypted):
     node = next(node for node in decrypted if node.value == 0)
