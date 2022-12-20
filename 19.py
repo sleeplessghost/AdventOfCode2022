@@ -17,49 +17,49 @@ def parsePart(part):
         cost_dict[resource] = int(value)
     return robot_type, cost_dict
 
-def getNextStates(state, blueprint, resource_limits, time_limit):
+def getNextStates(state, blueprint, resource_limits, time_limit, resource_lookup):
     if state.time >= time_limit - 1: return
-    producing = [res for res in state.production if state.production[res] > 0]
     for robot, cost_dict in blueprint.items():
-        if robot in resource_limits and state.production[robot] >= resource_limits[robot]: continue
-        if any(cost > 0 and res not in producing for res,cost in cost_dict.items()): continue
+        index = resource_lookup[robot]
+        if robot in resource_limits and state.production[index] >= resource_limits[robot]: continue
+        if any(cost > 0 and state.production[resource_lookup[res]] == 0 for res,cost in cost_dict.items()): continue
         time_to_wait = 0
-        for resource in cost_dict:
-            required = cost_dict[resource]
-            owned = state.resources[resource]
-            per_min = state.production[resource]
-            if required > owned:
-                wait = math.ceil((required - owned) / per_min)
+        for resource,cost in cost_dict.items():
+            if cost == 0: continue
+            index = resource_lookup[resource]
+            owned = state.resources[index]
+            per_min = state.production[index]
+            if cost > owned:
+                wait = math.ceil((cost - owned) / per_min)
                 time_to_wait = max(time_to_wait, wait)
         time_to_wait += 1
-        new_production = state.production.copy()
-        new_resources = state.resources.copy()
-        for resource in producing: new_resources[resource] += time_to_wait * state.production[resource]
-        for resource in cost_dict: new_resources[resource] -= cost_dict[resource] 
-        new_production[robot] += 1
+        new_resources = tuple(state.resources[i] + (time_to_wait * state.production[i]) - cost_dict[r] for r,i in resource_lookup.items())
+        new_production = tuple(state.production[i] + (r == robot) for r,i in resource_lookup.items())
         yield State(new_production, new_resources, state.time + time_to_wait)
 
 def produce(blueprint, limit):
+    resource_lookup = {r:i for i,r in enumerate(['ore', 'clay', 'obsidian', 'geode'])}
     resource_limits = {r: max(costs[r] for costs in blueprint.values()) for r in ['ore', 'clay', 'obsidian']}
-    initial = State(defaultdict(int, {'ore': 1}), defaultdict(int), 0)
+    initial = State((1,0,0,0), (0,0,0,0), 0)
     q = deque([initial])
+    visited = set()
+    best_geodes_time = defaultdict(int)
     while q:
         state = q.popleft()
-        next_states = [s for s in getNextStates(state, blueprint, resource_limits, limit) if s.time <= limit]
-        for s in next_states: q.append(s)
+        next_states = [s for s in getNextStates(state, blueprint, resource_limits, limit, resource_lookup) if s.time <= limit]
+        for s in next_states:
+            if s not in visited:
+                visited.add(s)
+                if s.resources[-1] >= best_geodes_time[s.time] - 1:
+                    best_geodes_time[s.time] = max(s.resources[-1], best_geodes_time[s.time])
+                    q.append(s)
         if not any(next_states):
             time_remaining = limit - state.time
-            yield state.resources['geode'] + time_remaining * state.production['geode']
+            yield state.resources[-1] + time_remaining * state.production[-1]
 
 blueprints = [parseLine(line[:-1]) for line in open('in/19.txt').read().splitlines()]
-best_geodes = []
-for i in range(len(blueprints)):
-    print(i, '/', len(blueprints))
-    best_geodes.append(max(produce(blueprints[i], 24)))
+best_geodes = (max(produce(blueprint, 24)) for blueprint in blueprints)
 print('part1:', sum((i+1) * geodes for i,geodes in enumerate(best_geodes)))
 
-best_geodes = []
-for i in range(len(blueprints[:3])):
-    print(i, '/', len(blueprints[:3]))
-    best_geodes.append(max(produce(blueprints[i], 32)))
+best_geodes = (max(produce(blueprint, 32)) for blueprint in blueprints[:3])
 print('part2:', math.prod(best_geodes))
