@@ -1,44 +1,30 @@
 from collections import deque
 
 class Monkey:
-    def __init__(self, left, right, operation, opcode):
+    def __init__(self, left, right, op):
         self.left = left
         self.right = right
-        self.operation = operation
-        self.opcode = opcode
+        self.op = op
 
-def parseOp(op):
+def operate(op, left, right):
     match op:
-        case '+': return lambda a,b: a+b
-        case '-': return lambda a,b: a-b
-        case '*': return lambda a,b: a*b
-        case '/': return lambda a,b: a/b
+        case '+': return left + right
+        case '-': return left - right
+        case '*': return left * right
+        case '/': return left / right
 
-def reverse(op):
+def reverse(op, value, expected, isLeft):
     match op:
-        case '+': return lambda val,result: result-val
-        case '-': return lambda val,result: result+val
-        case '*': return lambda val,result: result/val
-        case '/': return lambda val,result: result*val
-
-def getActual(value, expected, op, isLeft):
-    operation = reverse(op)
-    adjustResult = lambda x: x
-    if not isLeft:
-        if op == '-':
-            value = -1 * value
-            adjustResult = lambda x: -x
-        elif op == '/':
-            operation = lambda val,result: result / val
-    return adjustResult(operation(value,expected))
+        case '+': return expected - value
+        case '-': return expected + value if isLeft else value - expected
+        case '*': return expected / value
+        case '/': return expected * value if isLeft else expected / value
 
 def parse(line):
     name, value = line.split(': ')
     valueParts = value.split()
-    if len(valueParts) == 1:
-        return (name, int(valueParts[0]))
-    else:
-        return (name, Monkey(valueParts[0], valueParts[2], parseOp(valueParts[1]), valueParts[1]))
+    if len(valueParts) == 1: return (name, int(valueParts[0]))
+    else: return (name, Monkey(valueParts[0], valueParts[2], valueParts[1]))
 
 def value(name, monkeys, value_cache):
     if name in value_cache: return value_cache[name]
@@ -47,28 +33,26 @@ def value(name, monkeys, value_cache):
     else:
         left = value(monkey.left, monkeys, value_cache)
         right = value(monkey.right, monkeys, value_cache)
-        value_cache[name] = monkey.operation(left, right)
+        value_cache[name] = operate(monkey.op, left, right)
     return int(value_cache[name])
 
-def findHumnInTree(parent, monkeys):
+def findHumnPath(parent, monkeys):
     q = deque([[parent]])
     while q:
         path = q.popleft()
         monkey = monkeys[path[-1]]
+        if path[-1] == 'humn': return path
         if isinstance(monkey, int): continue
-        if monkey.left == 'humn' or monkey.right == 'humn': yield path
-        else:
-            q.append((*path, monkey.left))
-            q.append((*path, monkey.right))
+        q.append((*path, monkey.left))
+        q.append((*path, monkey.right))
 
 def findHumnValue(monkeys, value_cache, path):
     expected = 0
-    for i,name in enumerate(path):
+    for i,name in enumerate(path[:-1]):
         monkey = monkeys[name]
-        next_monkey = 'humn' if i == len(path)-1 else path[i+1]
-        isLeft = monkey.left == next_monkey
-        value_monkey = monkey.right if isLeft else monkey.left
-        expected = getActual(value_cache[value_monkey], expected, monkey.opcode, isLeft)
+        next_monkey = path[i+1]
+        value_monkey = monkey.right if monkey.left == next_monkey else monkey.left
+        expected = reverse(monkey.op, value_cache[value_monkey], expected, monkey.left == next_monkey)
     return int(expected)
 
 parsed = [parse(line) for line in open('in/21.txt').read().splitlines()]
@@ -76,6 +60,5 @@ monkeys = {name: val for name,val in parsed}
 value_cache = {}
 print('part1:', value('root', monkeys, value_cache))
 
-monkeys['root'].operation = parseOp('-')
-monkeys['root'].opcode = '-'
-print('part2:', findHumnValue(monkeys, value_cache, list(findHumnInTree('root', monkeys))[0]))
+monkeys['root'].op = '-'
+print('part2:', findHumnValue(monkeys, value_cache, findHumnPath('root', monkeys)))
