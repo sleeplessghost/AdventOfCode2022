@@ -13,7 +13,7 @@ def operate(op, left, right):
         case '*': return left * right
         case '/': return left / right
 
-def reverse(op, value, expected, isLeft):
+def invert(op, value, expected, isLeft):
     match op:
         case '+': return expected - value
         case '-': return expected + value if isLeft else value - expected
@@ -52,7 +52,7 @@ def findHumnValue(monkeys, value_cache, path):
         monkey = monkeys[name]
         next_monkey = path[i+1]
         value_monkey = monkey.right if monkey.left == next_monkey else monkey.left
-        expected = reverse(monkey.op, value_cache[value_monkey], expected, monkey.left == next_monkey)
+        expected = invert(monkey.op, value_cache[value_monkey], expected, monkey.left == next_monkey)
     return int(expected)
 
 parsed = [parse(line) for line in open('in/21.txt').read().splitlines()]
