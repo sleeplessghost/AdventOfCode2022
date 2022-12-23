@@ -39,7 +39,7 @@ def step(grid, index):
     proposed = defaultdict(list)
     value_locations = set(coord for coord in grid if grid[coord])
     for (x,y) in value_locations:
-        if all(grid[coord] == False for coord in [(x-1,y-1), (x,y-1), (x+1,y-1), (x-1,y), (x+1,y), (x-1,y+1), (x,y+1), (x+1,y+1)]):
+        if all(coord not in value_locations for coord in [(x-1,y-1), (x,y-1), (x+1,y-1), (x-1,y), (x+1,y), (x-1,y+1), (x,y+1), (x+1,y+1)]):
             continue
         for i in range(4):
             direction = directions[(index + i) % len(directions)]
@@ -47,10 +47,9 @@ def step(grid, index):
                 proposed[mutate(x,y,direction)].append((x,y))
                 break
     confirmed = list((coord, elfs) for coord,elfs in proposed.items() if len(elfs) == 1)
-    for _,elfs in confirmed:
-        for ox,oy in elfs: grid[(ox,oy)] = False
-    for (x,y),_ in confirmed:
+    for (x,y),elfs in confirmed:
         grid[(x,y)] = True
+        for ox,oy in elfs: grid[(ox,oy)] = False
     return (index + 1) % len(directions), confirmed
 
 def countEmpty(grid):
@@ -62,5 +61,4 @@ def countEmpty(grid):
 grid = parseGrid(open('in/23.txt').read().splitlines())
 runForSteps(grid, 10)
 print('part1:', countEmpty(grid))
-end = runToEnd(grid, 10)
-print('part2:', end)
+print('part2:', runToEnd(grid, 10))
